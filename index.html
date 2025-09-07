@@ -1,14 +1,464 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="fr" class="light">
 <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="style.css">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>HTML&CSS cours</title>
+    <title>Loïc BOT AI</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Inter', sans-serif;
+        }
+        .light body {
+            background: linear-gradient(to bottom, #f0f4f8, #e2e8f0);
+            color: #334155;
+        }
+        .dark body {
+            background: linear-gradient(to bottom, #1f2937, #111827);
+            color: #e5e7eb;
+        }
+        .light .bg-white {
+            background-color: white;
+        }
+        .dark .bg-white {
+            background-color: #1f2937;
+        }
+        #chat-container::-webkit-scrollbar {
+            width: 8px;
+        }
+        #chat-container::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
+        }
+        .dark #chat-container::-webkit-scrollbar-thumb {
+            background-color: #4b5563;
+        }
+        #chat-container::-webkit-scrollbar-track {
+            background-color: #f1f5f9;
+        }
+        .dark #chat-container::-webkit-scrollbar-track {
+            background-color: #374151;
+        }
+        .user-message {
+            background-color: #3b82f6;
+            color: white;
+            align-self: flex-end;
+            border-bottom-right-radius: 0;
+        }
+        .bot-message {
+            background-color: white;
+            color: #334155;
+            align-self: flex-start;
+            border-bottom-left-radius: 0;
+        }
+        .dark .bot-message {
+            background-color: #2d3748;
+            color: #f3f4f6;
+        }
+    </style>
 </head>
-<body>
-    <h1>Cours 1</h1>
-    <h2>Heberger sur github</h2>
-    
+<body class="flex flex-col items-center justify-center p-4">
+
+    <!-- Conteneur principal du chatbot -->
+    <div class="bg-white shadow-xl rounded-3xl w-full max-w-sm overflow-hidden flex flex-col h-[90vh]">
+        <!-- En-tête du chatbot -->
+        <header class="bg-gray-100 dark:bg-gray-700 p-4 flex items-center justify-between shadow-lg rounded-t-3xl transition-colors duration-300">
+            <div class="flex items-center space-x-3">
+                <img src="photo.jpg" alt="Photo de profil" class="h-12 w-12 rounded-full border-2 border-indigo-500">
+                <div>
+                    <h1 class="text-xl font-bold text-gray-800 dark:text-gray-100">Maître Loïc</h1>
+                    <p class="text-sm text-gray-500 dark:text-gray-400">Chatbot Assistant</p>
+                </div>
+            </div>
+            <div class="flex space-x-2">
+                <button id="theme-toggle-btn" class="p-2 rounded-full bg-indigo-500 text-white shadow-md hover:bg-indigo-600 transition-colors">
+                    <i class="fas fa-sun"></i>
+                </button>
+                <button id="new-chat-btn" class="p-2 rounded-full bg-indigo-500 text-white shadow-md hover:bg-indigo-600 transition-colors">
+                    <i class="fas fa-plus"></i>
+                </button>
+                <button id="history-btn" class="p-2 rounded-full bg-indigo-500 text-white shadow-md hover:bg-indigo-600 transition-colors">
+                    <i class="fas fa-history"></i>
+                </button>
+            </div>
+        </header>
+
+        <!-- Zone d'affichage des messages -->
+        <div id="chat-container" class="flex-grow p-4 space-y-4 overflow-y-auto transition-colors duration-300">
+            <!-- Les messages seront ajoutés ici par JS -->
+        </div>
+
+        <!-- Saisie de message et envoi -->
+        <div class="p-4 border-t-2 border-gray-100 dark:border-gray-700 transition-colors duration-300">
+            <!-- Sélecteur de mode -->
+            <div id="mode-selector" class="flex justify-around mb-4 text-sm font-semibold text-center">
+                <button data-mode="discuter" class="mode-btn p-2 rounded-xl flex-1 mx-1 text-white bg-blue-600 transition-colors hover:bg-blue-700">Discuter</button>
+                <button data-mode="apprendre" class="mode-btn p-2 rounded-xl flex-1 mx-1 text-gray-700 bg-gray-200 transition-colors hover:bg-gray-300">Apprendre</button>
+                <button data-mode="bepc" class="mode-btn p-2 rounded-xl flex-1 mx-1 text-gray-700 bg-gray-200 transition-colors hover:bg-gray-300">BEPC</button>
+            </div>
+            <form id="chat-form" class="flex items-center space-x-2">
+                <input type="text" id="user-input" placeholder="Tapez votre message..." autocomplete="off" class="flex-grow rounded-2xl p-3 border border-gray-300 dark:bg-gray-800 dark:text-white dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all">
+                <button type="submit" id="send-button" class="p-3 bg-blue-500 text-white rounded-2xl shadow-lg hover:bg-blue-600 transition-colors">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </form>
+        </div>
+
+    </div>
+
+    <!-- Modale pour la clé API -->
+    <div id="api-key-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white rounded-2xl p-6 shadow-2xl w-full max-w-sm text-center">
+            <h2 class="text-xl font-bold mb-4">Clé API requise</h2>
+            <p class="text-sm text-gray-600 mb-4">Veuillez saisir votre clé API Google Gemini pour continuer. Elle sera stockée en toute sécurité sur votre appareil.</p>
+            <input type="password" id="api-key-input" placeholder="Votre clé API ici..." class="w-full p-3 mb-4 rounded-xl border border-gray-300 dark:bg-gray-700 dark:text-white focus:outline-none focus:ring-2 focus:ring-blue-500">
+            <button id="save-api-key-btn" class="w-full bg-blue-500 text-white p-3 rounded-xl font-bold hover:bg-blue-600 transition-colors">Enregistrer</button>
+        </div>
+    </div>
+
+    <!-- Modale d'historique -->
+    <div id="history-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-2xl w-full max-w-sm">
+            <h2 class="text-xl font-bold mb-4 text-gray-800 dark:text-white">Historique des conversations</h2>
+            <div id="history-list" class="space-y-2 max-h-80 overflow-y-auto">
+                <!-- La liste des discussions sera ajoutée ici -->
+            </div>
+            <button id="close-history-btn" class="mt-6 w-full bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 p-3 rounded-xl font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">Fermer</button>
+        </div>
+    </div>
+
+    <!-- Modale de confirmation personnalisée -->
+    <div id="custom-confirm-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50 hidden">
+        <div class="bg-white dark:bg-gray-800 rounded-2xl p-6 shadow-2xl w-full max-w-xs text-center">
+            <h2 id="confirm-title" class="text-lg font-bold mb-2 text-gray-800 dark:text-white"></h2>
+            <p id="confirm-message" class="text-sm text-gray-600 dark:text-gray-400 mb-4"></p>
+            <div class="flex justify-end space-x-2">
+                <button id="confirm-yes-btn" class="bg-red-500 text-white p-2 rounded-xl font-bold hover:bg-red-600 transition-colors">Oui</button>
+                <button id="confirm-no-btn" class="bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-200 p-2 rounded-xl font-bold hover:bg-gray-300 dark:hover:bg-gray-600 transition-colors">Non</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Script JavaScript pour l'interaction -->
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const API_URL = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=";
+            
+            const html = document.documentElement;
+            const chatContainer = document.getElementById('chat-container');
+            const chatForm = document.getElementById('chat-form');
+            const userInput = document.getElementById('user-input');
+            const newChatBtn = document.getElementById('new-chat-btn');
+            const historyBtn = document.getElementById('history-btn');
+            const modeButtons = document.querySelectorAll('.mode-btn');
+            const themeToggleBtn = document.getElementById('theme-toggle-btn');
+            
+            const apiKeyModal = document.getElementById('api-key-modal');
+            const apiKeyInput = document.getElementById('api-key-input');
+            const saveApiKeyBtn = document.getElementById('save-api-key-btn');
+
+            const historyModal = document.getElementById('history-modal');
+            const historyList = document.getElementById('history-list');
+            const closeHistoryBtn = document.getElementById('close-history-btn');
+            
+            const customConfirmModal = document.getElementById('custom-confirm-modal');
+            const confirmTitle = document.getElementById('confirm-title');
+            const confirmMessage = document.getElementById('confirm-message');
+            const confirmYesBtn = document.getElementById('confirm-yes-btn');
+            const confirmNoBtn = document.getElementById('confirm-no-btn');
+
+            let currentMode = 'discuter';
+            let chatSessions = JSON.parse(localStorage.getItem('chatSessions')) || [];
+            let currentSessionId = localStorage.getItem('currentSessionId');
+            let apiKey = localStorage.getItem('geminiApiKey');
+            let theme = localStorage.getItem('theme') || 'light';
+
+            // --- Fonctions utilitaires pour le stockage et l'UI ---
+            function saveSessions() {
+                localStorage.setItem('chatSessions', JSON.stringify(chatSessions));
+                localStorage.setItem('currentSessionId', currentSessionId);
+            }
+
+            function findSession(sessionId) {
+                return chatSessions.find(session => session.id === sessionId);
+            }
+
+            function createNewSession() {
+                currentSessionId = crypto.randomUUID();
+                const newSession = {
+                    id: currentSessionId,
+                    title: 'Nouvelle conversation',
+                    messages: []
+                };
+                chatSessions.push(newSession);
+                saveSessions();
+                loadSession(currentSessionId);
+            }
+
+            function updateSessionTitle(title) {
+                const session = findSession(currentSessionId);
+                if (session && session.title === 'Nouvelle conversation') {
+                    session.title = title.substring(0, 30) + (title.length > 30 ? '...' : '');
+                    saveSessions();
+                }
+            }
+            
+            function addMessage(text, sender) {
+                const session = findSession(currentSessionId);
+                if (!session) return;
+                
+                const messageDiv = document.createElement('div');
+                messageDiv.classList.add('p-3', 'rounded-2xl', 'max-w-[80%]', 'break-words', 'shadow-md', 'transition-all', 'duration-300', 'transform', 'translate-y-2', 'opacity-0');
+                messageDiv.textContent = text;
+                
+                if (sender === 'user') {
+                    messageDiv.classList.add('user-message', 'rounded-br-none');
+                    updateSessionTitle(text);
+                } else {
+                    messageDiv.classList.add('bot-message', 'rounded-bl-none');
+                }
+                
+                chatContainer.appendChild(messageDiv);
+                setTimeout(() => {
+                    messageDiv.classList.remove('translate-y-2', 'opacity-0');
+                }, 50);
+                
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                session.messages.push({ text, sender, mode: currentMode });
+                saveSessions();
+            }
+
+            function loadSession(sessionId) {
+                const session = findSession(sessionId);
+                if (session) {
+                    currentSessionId = sessionId;
+                    saveSessions();
+                    chatContainer.innerHTML = '';
+                    if (session.messages.length > 0) {
+                        session.messages.forEach(msg => {
+                            const messageDiv = document.createElement('div');
+                            messageDiv.classList.add('p-3', 'rounded-2xl', 'max-w-[80%]', 'break-words', 'shadow-md');
+                            messageDiv.textContent = msg.text;
+                            messageDiv.classList.add(msg.sender === 'user' ? 'user-message' : 'bot-message');
+                            messageDiv.classList.add(msg.sender === 'user' ? 'rounded-br-none' : 'rounded-bl-none');
+                            chatContainer.appendChild(messageDiv);
+                        });
+                        chatContainer.scrollTop = chatContainer.scrollHeight;
+                    } else {
+                        addMessage('Bonjour Maître Loïc, comment puis-je vous aider aujourd\'hui ?', 'bot');
+                    }
+                }
+            }
+
+            function updateModeUI() {
+                modeButtons.forEach(btn => {
+                    if (btn.dataset.mode === currentMode) {
+                        btn.classList.add('bg-blue-600', 'text-white');
+                        btn.classList.remove('bg-gray-200', 'text-gray-700');
+                    } else {
+                        btn.classList.add('bg-gray-200', 'text-gray-700');
+                        btn.classList.remove('bg-blue-600', 'text-white');
+                    }
+                });
+            }
+
+            function showCustomConfirm(title, message) {
+                return new Promise(resolve => {
+                    confirmTitle.textContent = title;
+                    confirmMessage.textContent = message;
+                    customConfirmModal.classList.remove('hidden');
+
+                    const handleYes = () => {
+                        customConfirmModal.classList.add('hidden');
+                        confirmYesBtn.removeEventListener('click', handleYes);
+                        confirmNoBtn.removeEventListener('click', handleNo);
+                        resolve(true);
+                    };
+
+                    const handleNo = () => {
+                        customConfirmModal.classList.add('hidden');
+                        confirmYesBtn.removeEventListener('click', handleYes);
+                        confirmNoBtn.removeEventListener('click', handleNo);
+                        resolve(false);
+                    };
+
+                    confirmYesBtn.addEventListener('click', handleYes);
+                    confirmNoBtn.addEventListener('click', handleNo);
+                });
+            }
+            
+            // --- Fonctions API et Logique du Chatbot ---
+            async function callGeminiAPI(userMessage) {
+                if (!apiKey) {
+                    alert('Clé API non trouvée. Veuillez en fournir une.');
+                    return;
+                }
+                
+                const loadingMessage = document.createElement('div');
+                loadingMessage.textContent = '...';
+                loadingMessage.classList.add('bot-message', 'rounded-2xl', 'max-w-[80%]', 'p-3', 'rounded-bl-none', 'shadow-md');
+                chatContainer.appendChild(loadingMessage);
+                chatContainer.scrollTop = chatContainer.scrollHeight;
+                
+                const basePrompt = `Tu es très gentil, respectueux, tu appelles toujours l'utilisateur "maître Loïc" et tu es son assistant personnel. Ton rôle est de l'aider avec ses questions.`;
+                let modePrompt = '';
+                
+                switch (currentMode) {
+                    case 'discuter':
+                        modePrompt = `En mode "discuter", tu peux discuter librement ou créer des histoires très longues pour Maître Loïc.`;
+                        break;
+                    case 'apprendre':
+                        modePrompt = `En mode "apprendre", tu dois donner des leçons ou des explications très simples et faciles à comprendre pour Maître Loïc.`;
+                        break;
+                    case 'bepc':
+                        modePrompt = `En mode "bepc", tu dois préparer des cours, des exercices et des tests pour le BEPC. Sois rigoureux et pédagogique.`;
+                        break;
+                }
+                
+                const payload = {
+                    contents: [{
+                        parts: [{
+                            text: `${basePrompt}\n${modePrompt}\n\nMaître Loïc: ${userMessage}`
+                        }]
+                    }],
+                    generationConfig: {
+                        stopSequences: [],
+                        temperature: 0.9,
+                        topP: 1,
+                        topK: 1
+                    }
+                };
+                
+                try {
+                    const response = await fetch(API_URL + apiKey, {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify(payload)
+                    });
+                    const result = await response.json();
+                    loadingMessage.remove();
+                    
+                    if (result.candidates && result.candidates.length > 0) {
+                        const botResponse = result.candidates[0].content.parts[0].text;
+                        addMessage(botResponse, 'bot');
+                    } else {
+                        addMessage('Désolé, une erreur s\'est produite. Veuillez réessayer.', 'bot');
+                        console.error('Erreur API Gemini: ', result);
+                    }
+                } catch (error) {
+                    loadingMessage.remove();
+                    addMessage('Désolé, je n\'arrive pas à me connecter. Vérifiez votre connexion ou votre clé API.', 'bot');
+                    console.error('Erreur de connexion: ', error);
+                }
+            }
+
+            // --- Gestion des événements ---
+            chatForm.addEventListener('submit', (e) => {
+                e.preventDefault();
+                const userMessage = userInput.value.trim();
+                if (userMessage) {
+                    addMessage(userMessage, 'user');
+                    callGeminiAPI(userMessage);
+                    userInput.value = '';
+                }
+            });
+            
+            newChatBtn.addEventListener('click', async () => {
+                const confirmed = await showCustomConfirm('Nouvelle conversation', 'Êtes-vous sûr de vouloir commencer un nouveau chat ?');
+                if (confirmed) {
+                    createNewSession();
+                }
+            });
+            
+            historyBtn.addEventListener('click', () => {
+                historyList.innerHTML = '';
+                if (chatSessions.length > 0) {
+                    chatSessions.forEach(session => {
+                        const sessionItem = document.createElement('button');
+                        sessionItem.textContent = session.title;
+                        sessionItem.dataset.id = session.id;
+                        sessionItem.classList.add('w-full', 'text-left', 'p-3', 'rounded-lg', 'bg-gray-100', 'dark:bg-gray-700', 'hover:bg-gray-200', 'dark:hover:bg-gray-600', 'transition-colors');
+                        if (session.id === currentSessionId) {
+                            sessionItem.classList.add('font-bold', 'border-2', 'border-blue-500');
+                        }
+                        sessionItem.addEventListener('click', () => {
+                            loadSession(session.id);
+                            historyModal.classList.add('hidden');
+                        });
+                        historyList.appendChild(sessionItem);
+                    });
+                } else {
+                    historyList.innerHTML = '<p class="text-gray-500 dark:text-gray-400 text-center">Aucune discussion enregistrée.</p>';
+                }
+                historyModal.classList.remove('hidden');
+            });
+            
+            closeHistoryBtn.addEventListener('click', () => {
+                historyModal.classList.add('hidden');
+            });
+
+            modeButtons.forEach(btn => {
+                btn.addEventListener('click', () => {
+                    currentMode = btn.dataset.mode;
+                    updateModeUI();
+                    addMessage(`Mode " ${btn.textContent}" activé.`, 'bot');
+                });
+            });
+
+            themeToggleBtn.addEventListener('click', () => {
+                if (html.classList.contains('light')) {
+                    html.classList.remove('light');
+                    html.classList.add('dark');
+                    themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
+                    localStorage.setItem('theme', 'dark');
+                } else {
+                    html.classList.remove('dark');
+                    html.classList.add('light');
+                    themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
+                    localStorage.setItem('theme', 'light');
+                }
+            });
+            
+            saveApiKeyBtn.addEventListener('click', () => {
+                const key = apiKeyInput.value.trim();
+                if (key) {
+                    localStorage.setItem('geminiApiKey', key);
+                    apiKey = key;
+                    apiKeyModal.classList.add('hidden');
+                    loadSession(currentSessionId);
+                } else {
+                    // Remplacer alert() par une modale personnalisée
+                    alert('Veuillez saisir une clé API valide.');
+                }
+            });
+
+            // --- Initialisation ---
+            if (!currentSessionId) {
+                createNewSession();
+            } else {
+                loadSession(currentSessionId);
+            }
+            updateModeUI();
+
+            if (theme === 'dark') {
+                html.classList.remove('light');
+                html.classList.add('dark');
+                themeToggleBtn.innerHTML = '<i class="fas fa-moon"></i>';
+            } else {
+                html.classList.remove('dark');
+                html.classList.add('light');
+                themeToggleBtn.innerHTML = '<i class="fas fa-sun"></i>';
+            }
+
+            if (!apiKey) {
+                apiKeyModal.classList.remove('hidden');
+            }
+        });
+    </script>
 </body>
 </html>
